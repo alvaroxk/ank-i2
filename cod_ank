@@ -1,0 +1,136 @@
+
+
+
+{{type:cloze:Text}}{{cloze:Text}}
+
+<script type="text/javascript">
+var fields = [];
+function updateMain()
+{
+    ///Updates the primary "typeans" textbox with the results of each textbox.
+    ///Only used if there are multiple cloze deletions.
+    var textbox = document.getElementById("typeans");
+    var str = "";
+    var previous = "";
+    var maxLength = fields.length;
+    for (var i = 0; i < maxLength; i++) 
+    {
+        //add the comma beforehand instead of afterwards, this avoids the need to explicitly handle consolidating two consecutive fields with the same value.
+        var toAdd = fields[i].value;
+        var addComma = (i != 0 && toAdd != previous);
+        if(addComma)
+        {
+            str += ", ";
+        }
+
+        if(toAdd == previous)
+            continue; //do nothing if the same data is consecutive.
+        str += toAdd;
+        previous = toAdd;
+    }
+
+    textbox.value = str;
+    return true;
+}
+mungeCloze = function()
+{
+    var textbox = document.getElementById("typeans")
+    //clozes are blue elements of: [...] which we want to remove.
+    var clozes = document.getElementsByClassName("cloze");
+
+    if(textbox == null || clozes.length == 0)
+        return;
+
+    var needsWork = (clozes.length > 1);
+
+    fields = [];
+    if(!needsWork)
+    {
+        var cloze = clozes[0];
+        if(cloze != null)
+        {
+            textbox.removeAttribute("class")
+
+            var container = cloze.parentNode;
+            container.insertBefore(textbox, cloze);
+            container.removeChild(cloze);
+            textbox.style.display = ""; //make visible.
+        }
+
+    }
+    else
+    {
+        //Clone the textbox and insert it before the deletions: "[...]".
+        var length = clozes.length;
+        var originalTextbox = textbox;
+        for (var i = 0; i < length; i++) 
+        {
+            var cloze = clozes[i];
+            if (cloze == null)
+                continue;
+
+            var textboxToReplace = originalTextbox.cloneNode(true);
+            textboxToReplace.id = "typeans" + i;
+            textboxToReplace.onkeyup = updateMain;
+
+            var container = cloze.parentNode;
+            container.insertBefore(textboxToReplace, cloze);
+            fields.push(textboxToReplace);
+        }
+
+        //Once we've handled each cloze, remove it from the list so it will not be modified again.
+        while(clozes.length > 0) 
+        {
+            var toRemove = clozes[0];
+            toRemove.parentNode.removeChild(toRemove);
+        }   
+
+        //We hide the textbox here. If we did this beforehand then .clone() would transfer this to the new textboxes.
+        originalTextbox.style.display = "none";
+    }
+}
+mungeCloze();
+window.setTimeout(mungeCloze, 1000);
+</script>
+
+
+
+
+
+-----------------------------------------------------------------------------------------------
+
+
+
+.card 
+{
+    font-family: arial;
+    font-size: 20px;
+    text-align: center;
+    color: black;
+    background-color: white;
+}
+
+.cloze 
+{
+    font-weight: bold;
+    color: blue;
+}
+#typeans { width: 150px; }
+center { display:inline; }	
+
+
+
+
+
+-----------------------------------------------------------------------------------------------
+
+
+
+
+
+{{cloze:Text}}
+{{#c1}}{{type:Type1}}{{/c1}}<BR>
+
+
+
+
